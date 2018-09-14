@@ -1,3 +1,6 @@
 [submodule "the_original_problem"]
 	path = the_original_problem
 	url = https://github.com/unccv/the_original_problem
+[submodule "learning_to_see"]
+	path = learning_to_see
+	url = https://github.com/unccv/learning_to_see.git
