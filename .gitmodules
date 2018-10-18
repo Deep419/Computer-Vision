@@ -4,3 +4,6 @@
 [submodule "learning_to_see"]
 	path = learning_to_see
 	url = https://github.com/unccv/learning_to_see.git
+[submodule "autonomous_driving"]
+	path = autonomous_driving
+	url = https://github.com/unccv/autonomous_driving.git
