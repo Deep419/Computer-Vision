@@ -7,3 +7,6 @@
 [submodule "autonomous_driving"]
 	path = autonomous_driving
 	url = https://github.com/unccv/autonomous_driving.git
+[submodule "neural_networks"]
+	path = neural_networks
+	url = https://github.com/unccv/neural_networks.git
