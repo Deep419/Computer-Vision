@@ -32,12 +32,13 @@ def train(path_to_images, csv_file):
     # here's some code to import a single image:
     frame_num = int(frame_nums[0])
     im_full = cv2.imread(path_to_images + '/' + str(int(frame_num)).zfill(4) + '.jpg')
-
+    im_full2 = cv2.imread(path_to_images + '/' + str(int(frame_nums[10])).zfill(4) + '.jpg')
     # Train your network here. You'll probably need some weights and gradients!
     NN = NeuralNetwork()
     T = trainer(NN)
-    T.train(X,y)
-    params = NN.getParams()
+    T.train(im_full,steering_angles[0],im_full2,steering_angles[10])
+    # print(A)
+    # params = NN.getParams()
     #grads = NN.computeGradients(X, y)
 
     
@@ -53,9 +54,9 @@ def predict(NN, image_file):
     im_full = cv2.imread(image_file)
 
     ## Perform inference using your Neural Network (NN) here.
-    
+    return NN.forward(im_full)
 
-    return 0.0
+    # return 0.0
 
 class trainer(object):
     def __init__(self, N):
