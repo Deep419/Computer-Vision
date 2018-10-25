@@ -29,17 +29,14 @@ def evaluate(student_file = 'sample_student',
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(time_limit)
     
-    try:
-        print("Training your network, start time: %s" % time.strftime("%H:%M:%S"))
-        NN = train(path_to_images = path_to_training_images,
-                   csv_file = training_csv_file)
+    
+    print("Training your network, start time: %s" % time.strftime("%H:%M:%S"))
+    NN = train(path_to_images = path_to_training_images,
+                csv_file = training_csv_file)
+    
 
-    except ValueError as ex:
-        pass
-        
-    finally:
-        signal.alarm(0)
-        print("Ending Time: %s" % time.strftime("%H:%M:%S"))
+    signal.alarm(0)
+    print("Ending Time: %s" % time.strftime("%H:%M:%S"))
         
     print('Training Complete! \n')
     
@@ -81,7 +78,7 @@ def calculate_score(RMSE):
 
 if __name__ == '__main__':
     program_start = time.time()
-    RMSE = evaluate(student_file='sample_student', 
+    RMSE = evaluate(student_file='deep_ghaghara', 
                     path_to_training_images = 'data/training/images',
                     training_csv_file = 'data/training/steering_angles.csv', 
                     path_to_testing_images = 'data/training/images',

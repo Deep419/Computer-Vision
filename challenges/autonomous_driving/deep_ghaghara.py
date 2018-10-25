@@ -20,9 +20,9 @@ class Neural_Network(object):
         self.hiddenLayerSize = 30
 
         # Glorot Initialization
-        limit = sqrt(6 / (self.inputLayerSize + self.hiddenLayerSize))
+        limit = np.sqrt(6 / (self.inputLayerSize + self.hiddenLayerSize))
         self.W1 = np.random.uniform(-limit, limit, (self.inputLayerSize, self.hiddenLayerSize))
-        limit = sqrt(6 / (self.hiddenLayerSize + self.outputLayerSize))
+        limit = np.sqrt(6 / (self.hiddenLayerSize + self.outputLayerSize))
         self.W2 = np.random.uniform(-limit, limit, (self.hiddenLayerSize, self.outputLayerSize))
         
         #Regularization Parameter:
@@ -140,8 +140,9 @@ def train(path_to_images, csv_file):
     beta2= 0.97
     epsilon= 1e-08
 
-    m0 = np.zeros(len(np.concatenate((NN.W1.ravel(), NN.W2.ravel()))))
-    v0 = m0
+    grads =  NN.computeGradients(X = X, y = y)
+    m0 = np.zeros(len(grads)) #Initialize first moment vector
+    v0 = np.zeros(len(grads)) #Initialize second moment vector
     t = 0.0
 
     losses = [] #For visualization
@@ -159,15 +160,7 @@ def train(path_to_images, csv_file):
         params = NN.getParams()
         new_params = params - alpha*mt_hat/(np.sqrt(vt_hat)+epsilon)
         NN.setParams(new_params)
-        losses.append(NN.costFunction(X = X, y = y))
-    #     angles=[]
-    #     predictions=NN.forward(X)
-    #     #     print(Encodedpredict)
-    #     for pred in predictions:
-    #         angles.append(bins[np.argmax(pred)])  
-    #     RMSE = np.sqrt(np.mean((np.array(angles) - steering_angles)**2))
-    # #print('Test Set RMSE = ' + str(RMSE) + ' degrees.')
-    #     print("Epoch: {} -> Loss: {}".format(i, RMSE))
+        losses.append(NN.costFunction(X = X, y = y))        
     return NN
 
 
