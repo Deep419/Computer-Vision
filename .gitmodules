@@ -13,3 +13,6 @@
 [submodule "the_3d_world"]
 	path = the_3d_world
 	url = https://github.com/unccv/the_3d_world.git
+[submodule "deep_learning"]
+	path = deep_learning
+	url = https://github.com/unccv/deep_learning.git
