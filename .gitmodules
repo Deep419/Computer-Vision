@@ -10,3 +10,6 @@
 [submodule "neural_networks"]
 	path = neural_networks
 	url = https://github.com/unccv/neural_networks.git
+[submodule "the_3d_world"]
+	path = the_3d_world
+	url = https://github.com/unccv/the_3d_world.git
