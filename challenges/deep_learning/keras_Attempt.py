@@ -28,8 +28,8 @@ class Model(object):
 
         # Learning params
         self.learning_rate = 1e-3
-        self.minibatch_size = 16
-        self.num_iterations = 500
+        self.minibatch_size = 32
+        self.num_iterations = 1500
         self.train_test_split = 0.7
 
         # Network params
@@ -72,23 +72,68 @@ class Model(object):
                                         3])
 
         self.y = tf.placeholder(tf.float32, [None, self.num_classes])
-        self.keep_prob = tf.placeholder(tf.float32)
+        l2_value = 0.1
+        self.model = tf.keras.Sequential([
+                tf.keras.layers.Conv2D(32, (5, 5), input_shape= (227,227,3), activation='relu', padding='valid',
+                    kernel_regularizer=tf.keras.regularizers.l2(l2_value)),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Conv2D(16, (3, 3), activation='relu',
+                    kernel_regularizer=tf.keras.regularizers.l2(l2_value)),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Conv2D(8, (2, 2),activation='relu',
+                    kernel_regularizer=tf.keras.regularizers.l2(l2_value)),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Dropout(0.5),
+                tf.keras.layers.Flatten(),
+                tf.keras.layers.Dense(10, activation=tf.nn.relu),
+                tf.keras.layers.Dense(3, activation=tf.nn.softmax)
+            ])
+        
+        self.model.summary()
+        
+        # self.keep_prob = tf.placeholder(tf.float32)
 
-        # Build Alexnet portion of graph
-        self.AN = AlexNet(self.X, self.keep_prob, self.num_layers_to_load)
+        # # Build Alexnet portion of graph
+        # self.AN = AlexNet(self.X, self.keep_prob, self.num_layers_to_load)
 
-        #### ------------ Setup Your Graph Here ------------------ ####
+        # #### ------------ Setup Your Graph Here ------------------ ####
 
-        flattened = tf.reshape(self.AN.pool5, [-1, 6*6*256]) #from alexnet code
-        dropout = tf.layers.dropout(flattened,0.5,name = 'dropout')
-        fc = tf.layers.dense(dropout,32,name = 'fc')
-        dropout2 = tf.layers.dropout(fc,0.5,name = 'dropout2')
-        fc2 = tf.layers.dense(dropout2,10,name = 'fc2')
+        # # We're taking the front of our graph from AlexNet, now let's 
+        # # build the rest - this is where we get to be creative!
+        # # Grab the tensor from alexnet that we're going to build from
+        # # Be sure to change this if you chnage num_layers_to_load
+ 
+        # flattened = tf.reshape(self.AN.pool5, [-1, 6*6*256])
 
-        self.logits = tf.layers.dense(inputs = fc2, units = 3, activation = None, name = 'layer')
-        self.yhat = tf.nn.softmax(self.logits)
+        # layer6 = tf.layers.dense(inputs = flattened, 
+		# 					 units = 2048,
+        #                      activation = 'relu',
+		# 					 name = 'layer6')
+        # layer7 = tf.nn.dropout(layer6,0.5) 
+        # layer8 = tf.layers.dense(inputs = layer7, 
+        #                 units = 512, 
+        #                 activation = 'relu',
+        #                 name = 'layer8')
 
-        self.trainable_variable_names = ['dropout','fc','dropout2','fc2','layer']
+
+
+
+
+        # Your graph should produce an estimate our our labels, yhat.
+        # yhat should be of the same dimension as y.
+        # self.yhat = ?
+
+        # self.logits = tf.layers.dense(inputs = layer8, units = 3, activation = None, name = 'fc9')
+        # self.yhat = tf.nn.softmax(self.logits)
+
+
+
+        # # Make sure you inlude the names of all the variables you would like to train here. 
+        # # These may include variables from this part of the graph or the alexnet portion. 
+        # # You can give your variables whatever name you like by passing in a name into your layers
+        # # for example if you setup a layer like this: tf.layers.dense(.... , name = 'my_fc6')
+        # # be sure to add 'my_fc6' to the trainable_variable_names list here:
+        # self.trainable_variable_names = ['layer6','layer8','fc9']
 
         #### ---------------- End Graph Setup --------------------- ####
 
@@ -101,7 +146,63 @@ class Model(object):
 
         #### ------------ Setup Cost Function Here ------------------ ####
 
-        cost = tf.losses.softmax_cross_entropy(self.y, self.logits)
+        # Your job here is to compute a cost to pass into our AdamOptimizer below. 
+        # cost = 
+
+        #Load up data from image files. 
+        data = data_loader(label_indices = self.label_indices, 
+                   channel_means = self.channel_means, 
+                   train_test_split = self.train_test_split,
+                   input_image_size = self.input_image_size, 
+                   data_path = '../data')
+        
+        def tfdata_generator(images, labels, is_training, batch_size=128):
+            '''Construct a data generator using tf.Dataset'''
+
+            def preprocess_fn(image, label):
+                '''A transformation function to preprocess raw data
+                into trainable input. '''
+                return image, label
+
+            dataset = tf.data.Dataset.from_tensor_slices((images, labels))
+            if is_training:
+                dataset = dataset.shuffle(1000)  # depends on sample size
+
+            # Transform and batch data at the same time
+            dataset = dataset.apply(tf.contrib.data.map_and_batch(
+                preprocess_fn, batch_size,
+                num_parallel_batches=4,  # cpu cores
+                drop_remainder=True if is_training else False))
+            dataset = dataset.repeat()
+            dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
+
+            return dataset
+
+        print('Done1')
+        # #Setup minibatch generators
+        # G = Generator(data.train.X, data.train.y, minibatch_size = self.minibatch_size)
+        # GT = Generator(data.test.X, data.test.y, minibatch_size = self.minibatch_size)
+        # G.generate()
+        # GT.generate()
+
+        training_set = tfdata_generator(data.train.X, data.train.y, is_training=True, batch_size=self.minibatch_size)
+        testing_set  = tfdata_generator(data.test.X, data.test.y, is_training=False, batch_size=self.minibatch_size)
+
+        # print(G.y)
+        self.model.compile(optimizer=tf.train.AdamOptimizer(learning_rate=self.learning_rate), 
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+        # call = tf.keras.callbacks.EarlyStopping(monitor='val_loss')
+        self.model.fit(training_set.make_one_shot_iterator(), 
+                steps_per_epoch=self.minibatch_size,
+                epochs=30,
+                validation_data=testing_set.make_one_shot_iterator(),
+                validation_steps=self.minibatch_size,
+                callbacks= [tf.keras.callbacks.EarlyStopping(monitor='val_loss',patience=15, verbose=1)])
+        # self.model.fit_generator(G.generate(),steps_per_epoch=16, epochs=10)
+        # cost = tf.losses.softmax_cross_entropy(self.y, self.logits)
+
+        print('Done2')
 
         #### ------------ End Cost Function Setup  ------------------ ####
 
